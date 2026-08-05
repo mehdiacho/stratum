@@ -1,0 +1,115 @@
+"""The output schema. Written before any stage exists, deliberately.
+
+Building stages first means fitting them to a schema afterwards, and provenance
+fields are exactly what gets quietly dropped when that happens (CLAUDE.md).
+"""
+
+from stratum.schema.artifact import (
+    Artifact,
+    Conflict,
+    ConflictResolution,
+    CostBreakdown,
+    Entity,
+    Material,
+    ModalityClass,
+    ModalityProfile,
+    OpenQuestion,
+    ProfileScope,
+    RunInfo,
+    Step,
+    VideoSource,
+)
+from stratum.schema.chunks import Chunk, ChunkKind, ChunkSource
+from stratum.schema.common import (
+    FACTUAL_MODALITIES,
+    SCHEMA_VERSION,
+    Claim,
+    Confidence,
+    Modality,
+    ProvenancedQuantity,
+    ProvenancedValue,
+    StratumModel,
+)
+from stratum.schema.media import (
+    Candidate,
+    DropReason,
+    Keyframe,
+    SampleRecord,
+    SelectionRecord,
+    SourceKind,
+    VideoMeta,
+)
+from stratum.schema.synthesis import (
+    DraftConflict,
+    DraftMaterial,
+    DraftOpenQuestion,
+    DraftStep,
+    SynthesisDraft,
+)
+from stratum.schema.transcript import (
+    SpeechQuality,
+    Transcript,
+    TranscriptSegment,
+    TranscriptWord,
+)
+from stratum.schema.transition import (
+    ActionInferred,
+    DraftClaim,
+    DraftEntity,
+    TranscriptWeight,
+    TranscriptWindow,
+    Transition,
+    TransitionDraft,
+    TransitionStatus,
+)
+
+__all__ = [
+    "FACTUAL_MODALITIES",
+    "SCHEMA_VERSION",
+    "ActionInferred",
+    "Artifact",
+    "Candidate",
+    "Chunk",
+    "ChunkKind",
+    "ChunkSource",
+    "Claim",
+    "Confidence",
+    "Conflict",
+    "ConflictResolution",
+    "CostBreakdown",
+    "DraftClaim",
+    "DraftConflict",
+    "DraftEntity",
+    "DraftMaterial",
+    "DraftOpenQuestion",
+    "DraftStep",
+    "DropReason",
+    "Entity",
+    "Keyframe",
+    "Material",
+    "Modality",
+    "ModalityClass",
+    "ModalityProfile",
+    "OpenQuestion",
+    "ProfileScope",
+    "ProvenancedQuantity",
+    "ProvenancedValue",
+    "RunInfo",
+    "SampleRecord",
+    "SelectionRecord",
+    "SourceKind",
+    "SpeechQuality",
+    "Step",
+    "StratumModel",
+    "SynthesisDraft",
+    "Transcript",
+    "TranscriptSegment",
+    "TranscriptWeight",
+    "TranscriptWindow",
+    "TranscriptWord",
+    "Transition",
+    "TransitionDraft",
+    "TransitionStatus",
+    "VideoMeta",
+    "VideoSource",
+]

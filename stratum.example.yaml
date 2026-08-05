@@ -1,0 +1,93 @@
+# Copy to `stratum.yaml` (gitignored via stratum.local.yaml, or keep it out of the
+# corpus folder) and edit. Every value here is a default made explicit — deleting
+# a line falls back to the same thing.
+#
+# Precedence, lowest to highest:
+#   model defaults < posture preset < this file < STRATUM_* env vars < CLI flags
+
+posture: mock # mock | hybrid | cloud | local
+
+# Backends. Anything set here overrides the posture preset, and mixing is expected:
+# local transcription with a cloud reasoner is a valid configuration.
+#
+# The reasoner slot is UNPINNED in the hybrid and cloud presets, because which
+# cloud VLM to use is 07_OPEN_QUESTIONS.md Q1 and still unanswered. Choose on the
+# three axes in 02_BACKEND_ABSTRACTION.md: structured-output reliability first,
+# per-image token cost second, delta-vs-description adherence third.
+#
+# backends:
+#   transcriber:
+#     provider: faster-whisper
+#     model: large-v3        # verified_on: 2026-08-04
+#     device: auto           # auto | cpu | cuda
+#     compute_type: int8     # int8 on CPU, float16 on GPU
+#     language: null         # null detects; pinning it is faster and more accurate
+#   embedder:
+#     provider: local-siglip
+#     model: null
+#     batch_size: 32
+#   reasoner:
+#     provider: null
+#     model: null
+#     api_key_env: SOME_PROVIDER_API_KEY   # the NAME of the variable, never the key
+#     max_output_tokens: 800
+#     temperature: 0.2
+#     max_attempts: 3
+
+pipeline:
+  sample:
+    sample_fps: 2.0 # fast-cut content wants 4, a static tripod shot wants 0.5
+    long_edge_px: 1024
+    jpeg_quality: 85
+    detect_shots: true
+    adaptive_threshold: 3.0
+    min_scene_len_s: 0.6
+
+  select:
+    phash_threshold: 8 # Hamming distance from the last RETAINED frame
+    embed_similarity_threshold: 0.94
+    use_embedding_tier: true
+    use_sharpness_tier: true
+    sharpness_cluster_radius: 2
+    max_keyframes_per_minute: 12
+    max_keyframes_total: 200
+    # Budget capping searches this threshold DOWNWARD until the set fits. It never
+    # truncates — truncation deletes the end of the video, which is where the
+    # finished thing is. See DECISIONS.md.
+    threshold_search_floor: 0.60
+    threshold_search_max_iterations: 12
+
+  weigh:
+    audio_led_wpm: 110.0
+    sparse_speech_wpm: 45.0
+    min_asr_confidence: 0.55
+    visual_led_kfpm: 6.0
+    enable_grounding_check: false # costs model calls; Phase 2
+    force_class: null # audio_led | visual_led | balanced | visual_only — for R6
+
+  traverse:
+    prior_frames_in_context: 1 # 0 halves image cost, 2 helps on hard content (D1)
+    transcript_window_margin_s: 3.0
+    state_token_budget: 1200
+
+  synthesise:
+    # D4: currently no threshold, so a run with 20 of 80 failures still synthesises.
+    # Phase 2 decides the real number.
+    max_failed_transition_ratio: 1.0
+
+  emit:
+    write_markdown: true
+    write_chunks: true
+    keep_candidates: false # candidates are disposable after S4; keyframes never are
+
+limits:
+  max_cost_usd_per_video: 1.00 # a hard stop, not a warning
+  max_wall_time_s: 3600
+  pricing_staleness_warn_days: 90
+
+paths:
+  runs_dir: runs # keep this OUT of the repo and off the corpus folder
+
+prompts:
+  traverse: s6_traverse.v1.md
+  synthesise: s7_synthesise.v1.md

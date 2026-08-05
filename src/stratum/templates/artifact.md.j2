@@ -1,0 +1,163 @@
+{#
+  artifact.md - a VIEW of the canonical model. Never hand-written, never edited.
+
+  Modality is rendered visibly in the human view too. If a person reading this
+  cannot tell measured from guessed, the document is dangerous - someone will buy
+  20 mm fittings.
+
+  Whitespace note: the environment sets trim_blocks and lstrip_blocks, so a block
+  tag on its own line emits nothing and eats its trailing newline. Do NOT add `-`
+  to the tags; it strips the newline BEFORE the tag too and runs list items
+  together.
+-#}
+# {{ a.run.source.filename }} — {{ duration }} — {{ a.modality_profile.cls.value | replace('_', '-') }}
+
+{% if a.run.source.title %}
+**{{ a.run.source.title }}**{{ byline }}
+
+{% endif %}
+{% if a.run.partial %}
+> **Partial run.** This artifact is incomplete — the run stopped early.
+> Stages completed: {{ a.run.stages_completed | join(', ') }}.
+
+{% endif %}
+{% if failed_count %}
+> **{{ failed_count }} keyframe(s) failed analysis.** Those moments are unobserved,
+> not uneventful.
+
+{% endif %}
+## What this video shows
+
+{{ a.overview or "_No overview was produced._" }}
+
+{% if a.run.source.description %}
+**Author's description** _(stated)_:
+
+> {{ a.run.source.description | replace('\n', '\n> ') }}
+
+{% endif %}
+## Procedure
+
+{% if a.procedure %}
+{% for step in a.procedure %}
+### {{ step.ordinal }}. {{ step.title }}{% if step.timestamp_range_s %} · {{ ts(step.timestamp_range_s[0]) }}–{{ ts(step.timestamp_range_s[1]) }}{% endif %} · confidence {{ '%.2f' | format(step.confidence) }}
+
+{{ step.detail }}
+
+{% for tr in transitions_for(step) %}
+![{{ tr.keyframe.id }}]({{ tr.keyframe.path }})
+*{{ ts(tr.keyframe.timestamp_s) }} — {{ tr.delta }}*
+
+{% endfor %}
+{% for claim in claims_for(step) %}
+- {{ claim.text }} — **{{ claim.modality.value }}** ({{ '%.2f' | format(claim.confidence) }})
+{% endfor %}
+
+{% endfor %}
+{% else %}
+_No procedure was derived._
+
+{% endif %}
+## Materials and tools
+
+{% if a.materials %}
+| Item | Qty | How we know |
+|---|---|---|
+{% for m in a.materials %}
+| {{ m.label }} | {{ qty(m) }} | {{ warrant(m) }} |
+{% endfor %}
+
+{% else %}
+_Nothing was identified as a distinct material or tool._
+
+{% endif %}
+## Entities tracked
+
+{% if a.entities %}
+| Entity | Kind | Seen | Attributes |
+|---|---|---|---|
+{% for e in a.entities %}
+| `{{ e.id }}` {{ e.label }} | {{ e.kind }} | {{ seen_span(e) }} | {{ attrs(e) }} |
+{% endfor %}
+
+{% else %}
+_No entities were tracked._
+
+{% endif %}
+## Open questions
+
+{% if a.open_questions %}
+{% for q in a.open_questions %}
+- **{{ q.text }}** — {{ q.why_it_matters }}
+{% endfor %}
+
+{% else %}
+_The video answered everything it raised, or nothing was flagged._
+
+{% endif %}
+## Conflicts
+
+{% if a.conflicts %}
+{% for c in a.conflicts %}
+- {{ conflict_line(c) }}
+{% endfor %}
+
+{% else %}
+_Audio and picture did not visibly disagree._
+
+{% endif %}
+## Transitions
+
+<details>
+<summary>{{ a.transitions | length }} keyframe transitions</summary>
+
+{% for t in a.transitions %}
+**{{ t.id }}** · {{ ts(t.keyframe.timestamp_s) }} · `{{ t.keyframe.id }}` · {{ t.status.value }}
+
+{% if t.status.value == 'failed' %}
+_Analysis failed: {{ t.error }}_
+
+{% elif t.no_meaningful_change %}
+_No meaningful change._
+
+{% else %}
+{{ t.delta }}
+
+{% for claim in t.claims %}
+- {{ claim.text }} — **{{ claim.modality.value }}** ({{ '%.2f' | format(claim.confidence) }})
+{% endfor %}
+{% if t.uncertainty %}
+
+_Unresolved: {{ t.uncertainty }}_
+{% endif %}
+
+{% endif %}
+{% endfor %}
+</details>
+
+---
+
+## Run
+
+| | |
+|---|---|
+| Run id | `{{ a.run.id }}` |
+| Source | {{ a.run.source.filename }} ({{ a.run.source.resolution[0] }}×{{ a.run.source.resolution[1] }}, {{ '%.2f' | format(a.run.source.fps_avg) }} fps avg) |
+| Modality profile | {{ a.modality_profile.cls.value }} — {{ a.modality_profile.note }} |
+| Speech density | {{ '%.1f' | format(a.modality_profile.speech_density_wpm) }} wpm |
+| Keyframes | {{ a.transitions | length }} ({{ '%.1f' | format(a.modality_profile.keyframes_per_minute) }} per minute) |
+| Cost | ${{ '%.4f' | format(a.run.cost.total_usd) }}{% if a.run.cost.cap_hit %} — **cost cap hit**{% endif %} |
+| Stages | {{ a.run.stages_completed | join(' ') }} |
+| Schema | v{{ a.schema_version }} · stratum {{ a.run.stratum_version }} |
+
+{% if a.run.cost.by_stage %}
+**Cost by stage:** {% for stage, usd in a.run.cost.by_stage.items() %}{{ stage }} ${{ '%.4f' | format(usd) }}{% if not loop.last %} · {% endif %}{% endfor %}
+
+{% endif %}
+{% if a.run.warnings %}
+**Warnings**
+
+{% for w in a.run.warnings %}
+- {{ w }}
+{% endfor %}
+{% endif %}

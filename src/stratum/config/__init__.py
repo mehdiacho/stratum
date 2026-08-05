@@ -1,0 +1,58 @@
+"""Configuration. Model names and prices live here, never in code."""
+
+from stratum.config.loader import (
+    CONFIG_FILENAMES,
+    find_config_file,
+    load_config,
+    load_postures,
+    resolve_api_key,
+)
+from stratum.config.models import (
+    BackendConfig,
+    BackendsConfig,
+    Config,
+    EmbedderConfig,
+    EmitConfig,
+    LimitsConfig,
+    PathsConfig,
+    PipelineConfig,
+    Posture,
+    PromptsConfig,
+    ReasonerConfig,
+    SampleConfig,
+    SelectConfig,
+    SynthesiseConfig,
+    TranscriberConfig,
+    TraverseConfig,
+    WeighConfig,
+)
+from stratum.config.pricing import CostModel, PricingTable, Rates, Usage
+
+__all__ = [
+    "CONFIG_FILENAMES",
+    "BackendConfig",
+    "BackendsConfig",
+    "Config",
+    "CostModel",
+    "EmbedderConfig",
+    "EmitConfig",
+    "LimitsConfig",
+    "PathsConfig",
+    "PipelineConfig",
+    "Posture",
+    "PricingTable",
+    "PromptsConfig",
+    "Rates",
+    "ReasonerConfig",
+    "SampleConfig",
+    "SelectConfig",
+    "SynthesiseConfig",
+    "TranscriberConfig",
+    "TraverseConfig",
+    "Usage",
+    "WeighConfig",
+    "find_config_file",
+    "load_config",
+    "load_postures",
+    "resolve_api_key",
+]

@@ -1,0 +1,44 @@
+# Run directories — frames, audio, artifacts. Never in git.
+runs/
+*.run/
+
+# Video and audio. The corpus lives outside the repo (07_OPEN_QUESTIONS Q3).
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.m4v
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+
+# Secrets. API keys come from the environment, never from a tracked file.
+.env
+.env.*
+!.env.example
+*.key
+secrets.yaml
+stratum.local.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

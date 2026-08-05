@@ -1,0 +1,86 @@
+# Posture presets — 02_BACKEND_ABSTRACTION.md
+#
+# A posture is a preset over the three backend slots. It is NOT a code path: no
+# pipeline stage branches on which posture is active. Anything here can be
+# overridden individually in your own config file, and mixing is expected —
+# local transcription with a cloud reasoner and a cloud embedder is valid.
+#
+# Model identifiers live here and only here. Every one carries a verified_on
+# comment. No model name is hard-coded in Python and none appears in the
+# specification documents.
+
+mock:
+  # The Phase 0 milestone posture: runs end to end with no network and no money,
+  # producing a schema-conformant artifact full of fake content. This is what
+  # every test runs against.
+  backends:
+    transcriber:
+      provider: mock
+      model: mock-asr-v1
+    embedder:
+      provider: mock
+      model: mock-embed-v1
+      dim: 512
+    reasoner:
+      provider: mock
+      model: mock-vlm-v1
+
+hybrid:
+  # The intended default once 07_OPEN_QUESTIONS Q1 is answered.
+  # Spend nothing on transcription and embedding, spend on the reasoner — that is
+  # not a compromise, it is the correct allocation of capability to cost.
+  backends:
+    transcriber:
+      provider: faster-whisper
+      model: large-v3          # verified_on: 2026-08-04
+      device: auto
+      compute_type: int8       # int8 on CPU, float16 on GPU
+    embedder:
+      provider: local-siglip
+      model: null              # UNPINNED — choose and record verified_on
+      batch_size: 32
+    reasoner:
+      provider: null           # UNPINNED — blocked on Q1. Choose on the three axes
+      model: null              # in 02_BACKEND_ABSTRACTION.md: schema reliability,
+      api_key_env: null        # image token cost, delta-vs-description adherence.
+      max_output_tokens: 800
+      temperature: 0.2
+
+cloud:
+  backends:
+    transcriber:
+      provider: null           # UNPINNED — cheapest per minute, Phase 2
+      model: null
+      api_key_env: null
+    embedder:
+      provider: null           # UNPINNED — Phase 2
+      model: null
+      api_key_env: null
+    reasoner:
+      provider: null           # UNPINNED — blocked on Q1
+      model: null
+      api_key_env: null
+      max_output_tokens: 1200
+      temperature: 0.2
+
+local:
+  # Needs a GPU, meaningfully. Blocked on Q4.
+  # The local VLM is the highest-risk implementation in the project and should be
+  # built with low expectations — see R1. Assume it cannot hold a state thread
+  # across 80 sequential calls until measured.
+  backends:
+    transcriber:
+      provider: faster-whisper
+      model: large-v3          # verified_on: 2026-08-04
+      device: auto
+      compute_type: float16
+    embedder:
+      provider: local-siglip
+      model: null              # UNPINNED
+      batch_size: 32
+    reasoner:
+      provider: ollama         # OpenAI-compatible endpoint, Phase 2
+      model: null              # UNPINNED
+      base_url: http://localhost:11434/v1
+      max_output_tokens: 800
+      temperature: 0.2

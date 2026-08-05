@@ -1,0 +1,52 @@
+# Pricing table — a data file with a date, never numbers in code.
+#
+# `stratum cost` and every metered call read this. The CLI warns when
+# `verified_on` is more than `limits.pricing_staleness_warn_days` old, because a
+# stale pricing table produces a cost report that is confidently wrong, which is
+# worse than no cost report at all.
+#
+# Rates are USD. Keys are "<provider>/<model>"; a "<provider>/*" entry is the
+# fallback for that provider.
+#
+# Units:
+#   usd_per_1k_tokens_in   text/prompt tokens
+#   usd_per_1k_tokens_out  completion tokens
+#   usd_per_image          flat per image, when a provider bills images separately
+#   image_tokens           when a provider bills images AS input tokens, put the
+#                          per-image token count here and leave usd_per_image at 0
+#   usd_per_audio_minute   ASR
+
+verified_on: "2026-08-04"
+
+entries:
+  # -- free / local -------------------------------------------------------
+  "mock/*":
+    usd_per_1k_tokens_in: 0.0
+    usd_per_1k_tokens_out: 0.0
+    usd_per_image: 0.0
+    usd_per_audio_minute: 0.0
+
+  "faster-whisper/*":
+    # Local. Costs electricity and wall time, not money.
+    usd_per_audio_minute: 0.0
+
+  "local-siglip/*":
+    usd_per_image: 0.0
+
+  "ollama/*":
+    usd_per_1k_tokens_in: 0.0
+    usd_per_1k_tokens_out: 0.0
+    usd_per_image: 0.0
+
+  # -- cloud --------------------------------------------------------------
+  # Nothing pinned yet: the Phase 1 reasoner is 07_OPEN_QUESTIONS Q1 and choosing
+  # it here would be silently resolving an open question. Add the entry in the
+  # same commit as the adapter, with a verified_on comment on the line.
+  #
+  # Shape to copy:
+  #
+  # "<provider>/<model>":            # verified_on: YYYY-MM-DD
+  #   usd_per_1k_tokens_in: 0.0000
+  #   usd_per_1k_tokens_out: 0.0000
+  #   image_tokens: 0                # per image, if billed as input tokens
+  #   usd_per_image: 0.0             # per image, if billed flat
