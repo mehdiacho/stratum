@@ -101,6 +101,13 @@ def process_(
         str | None,
         typer.Option("--from", help="Force a re-run from this stage onward (S0-S8)."),
     ] = None,
+    through: Annotated[
+        str | None,
+        typer.Option(
+            "--through",
+            help="Stop after this stage (S0-S8). `--through S1` extracts audio and stops.",
+        ),
+    ] = None,
     retranscribe: Annotated[
         bool,
         typer.Option("--retranscribe", help="Allow S2 to be redone. It is protected by default."),
@@ -129,6 +136,14 @@ def process_(
     if from_stage and from_stage.upper() not in STAGE_ORDER:
         _fail(f"--from must be one of {', '.join(STAGE_ORDER)}")
 
+    only_stages: set[str] | None = None
+    if through:
+        if through.upper() not in STAGE_ORDER:
+            _fail(f"--through must be one of {', '.join(STAGE_ORDER)}")
+        # Everything up to and including the named stage. The manifest still records
+        # each one as complete, so a later full run resumes rather than restarting.
+        only_stages = set(STAGE_ORDER[: STAGE_ORDER.index(through.upper()) + 1])
+
     try:
         videos = list(default_source(order_by=order_by, recursive=recursive).resolve(target))
     except StratumError as exc:
@@ -156,6 +171,7 @@ def process_(
                 runs_dir=runs_dir,
                 force_from=from_stage.upper() if from_stage else None,
                 allow_retranscribe=retranscribe,
+                only_stages=only_stages,
             )
         except StratumError as exc:
             failures += 1

@@ -20,12 +20,13 @@ The reasoning holds up independently of the earlier failed attempt. Downloading 
 class Source(Protocol):
     def resolve(self, spec: str) -> list[VideoRef]: ...
 
+
 @dataclass
 class VideoRef:
     path: Path
-    origin: str | None          # URL if known, else None
+    origin: str | None  # URL if known, else None
     title: str | None
-    description: str | None     # caption / post text — real signal, feed it to S6
+    description: str | None  # caption / post text — real signal, feed it to S6
     author: str | None
     published_at: datetime | None
     fetched_at: datetime | None

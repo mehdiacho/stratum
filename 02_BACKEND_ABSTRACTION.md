@@ -20,13 +20,15 @@ class Transcriber(Protocol):
     @property
     def cost_model(self) -> CostModel: ...
 
+
 class Embedder(Protocol):
-    def embed_images(self, paths: Sequence[Path]) -> np.ndarray: ...   # (n, d), L2-normalised
+    def embed_images(self, paths: Sequence[Path]) -> np.ndarray: ...  # (n, d), L2-normalised
     @property
     def cost_model(self) -> CostModel: ...
 
+
 class Reasoner(Protocol):
-    def analyse(self, req: ReasonRequest) -> ReasonResponse: ...       # schema-enforced
+    def analyse(self, req: ReasonRequest) -> ReasonResponse: ...  # schema-enforced
     @property
     def cost_model(self) -> CostModel: ...
 ```

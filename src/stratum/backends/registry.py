@@ -21,7 +21,6 @@ MOCK_PROVIDERS = frozenset({"mock"})
 # here means the error says "Phase 2" instead of "unknown provider", which is the
 # difference between a roadmap and a bug.
 PLANNED_PROVIDERS: dict[str, str] = {
-    "faster-whisper": "Phase 1 — local ASR adapter",
     "local-siglip": "Phase 1 — local vision encoder adapter",
     "ollama": "Phase 2 — local VLM via the OpenAI-compatible endpoint",
 }
@@ -62,6 +61,29 @@ def build_transcriber(config: Config, pricing: PricingTable) -> Transcriber:
             model=cfg.model,
             words_per_minute=float(cfg.options.get("words_per_minute", 90.0)),
             silent=bool(cfg.options.get("silent", False)),
+        )
+
+    if provider == "faster-whisper":
+        # Imported here, not at module scope: a cloud-posture install must never
+        # need the ASR extra on disk.
+        from stratum.backends.faster_whisper import FasterWhisperTranscriber
+
+        if not cfg.model:
+            raise ConfigError(
+                "backends.transcriber.model is unset. Pin a whisper model id in "
+                "config (postures.yaml has one, with a verified_on date)."
+            )
+        options = dict(cfg.options)
+        return FasterWhisperTranscriber(
+            cost_model,
+            model=cfg.model,
+            device=cfg.device,
+            compute_type=cfg.compute_type,
+            beam_size=cfg.beam_size,
+            language=cfg.language,
+            vad_filter=bool(options.pop("vad_filter", True)),
+            cpu_threads=int(options.pop("cpu_threads", 0)),
+            options=options,
         )
 
     raise _not_built("transcriber", provider)

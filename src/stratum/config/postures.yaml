@@ -34,7 +34,7 @@ hybrid:
       provider: faster-whisper
       model: large-v3          # verified_on: 2026-08-04
       device: auto
-      compute_type: int8       # int8 on CPU, float16 on GPU
+      compute_type: auto       # -> int8 on CPU, float16 on GPU
     embedder:
       provider: local-siglip
       model: null              # UNPINNED — choose and record verified_on
@@ -73,7 +73,7 @@ local:
       provider: faster-whisper
       model: large-v3          # verified_on: 2026-08-04
       device: auto
-      compute_type: float16
+      compute_type: auto       # -> float16 on GPU, int8 if CUDA is unusable
     embedder:
       provider: local-siglip
       model: null              # UNPINNED

@@ -196,3 +196,18 @@ than being replaced.
 duplicated — and this *is* that folder. Moving Mehdi's documents to make room for a code
 README would have been a worse trade than appending to the README that already indexes
 them. Reversible: the code is confined to `src/`, `tests/`, `prompts/` and `pyproject.toml`.
+
+---
+
+## 2026-08-21 — ffmpeg 5.0 is the floor, and `-vsync` is gone
+
+**Decision:** `extract_frames` uses `-fps_mode vfr`, and `ensure_available()` refuses to run
+against ffmpeg older than 5.0.
+
+**Why:** Found when a clean Windows install brought ffmpeg 9.0 instead of the 8.1.1 this was
+written against. **9.0 removed `-vsync` outright** — not deprecated, removed — so every
+frame-extraction call died with "Unrecognized option 'vsync'" and took eighteen integration
+tests with it. `-fps_mode` is the replacement and has existed since 5.0; there is no spelling
+that works on both sides of that line, so 5.0 is the documented floor. The version is checked
+rather than assumed, because the failure mode otherwise is a wall of ffmpeg banner text
+three stages into a run.

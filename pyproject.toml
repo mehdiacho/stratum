@@ -22,12 +22,25 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Local model backends. This is the extra that costs you gigabytes.
-local = [
-    "faster-whisper>=1.0",
+# Local ASR. Runs on CTranslate2, NOT PyTorch — keep it separable, because
+# transcription should never cost you 2.5 GB of torch it does not use.
+asr = ["faster-whisper>=1.0"]
+
+# GPU acceleration for the CTranslate2 backends. Optional on top of `asr`:
+# without it faster-whisper still runs, on CPU.
+cuda = [
+    "nvidia-cublas-cu12",
+    "nvidia-cudnn-cu12>=9.0",
+]
+
+# Local vision encoder. THIS is the extra that costs you gigabytes.
+vision = [
     "open-clip-torch>=2.24",
     "torch>=2.2",
 ]
+
+# Everything needed for the fully-local posture.
+local = ["stratum[asr]", "stratum[vision]"]
 # Cloud provider SDKs. Added one at a time as adapters are built (Phase 1-2).
 cloud = []
 dev = [

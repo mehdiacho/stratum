@@ -9,6 +9,7 @@ that costs you a day.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -22,12 +23,41 @@ FFMPEG = "ffmpeg"
 FFPROBE = "ffprobe"
 
 
+MIN_FFMPEG_MAJOR = 5
+"""`-fps_mode` landed in ffmpeg 5.0, and its `-vsync` alias was REMOVED in 9.0.
+
+There is no single spelling that works on both sides of 5.0, so 5.0 is the floor.
+Checked rather than assumed, because the failure mode otherwise is a wall of
+ffmpeg banner text ending in "Unrecognized option" three stages into a run.
+"""
+
+
+def ffmpeg_version() -> tuple[int, int] | None:
+    """(major, minor) from the ffmpeg banner, or None if it cannot be parsed.
+
+    Unparseable is not fatal: distro builds carry all sorts of version strings and
+    refusing to run on one we cannot read would be worse than trying.
+    """
+    proc = _run([FFMPEG, "-version"], timeout=30)
+    match = re.search(r"ffmpeg version n?(\d+)\.(\d+)", proc.stdout or "")
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
 def ensure_available() -> None:
     missing = [tool for tool in (FFMPEG, FFPROBE) if shutil.which(tool) is None]
     if missing:
         raise DependencyMissing(
             f"{' and '.join(missing)} not found on PATH. STRATUM shells out to ffmpeg "
             "directly; install it and try again."
+        )
+
+    version = ffmpeg_version()
+    if version is not None and version[0] < MIN_FFMPEG_MAJOR:
+        raise DependencyMissing(
+            f"ffmpeg {version[0]}.{version[1]} is too old; STRATUM needs "
+            f"{MIN_FFMPEG_MAJOR}.0 or newer for `-fps_mode`."
         )
 
 
@@ -258,7 +288,9 @@ def extract_frames(
             str(src),
             "-vf",
             ",".join(filters),
-            "-vsync",
+            # `-fps_mode`, not the `-vsync` alias: ffmpeg 9.0 removed `-vsync`
+            # outright and fails the whole command with "Unrecognized option".
+            "-fps_mode",
             "vfr",
             "-q:v",
             str(qscale),
